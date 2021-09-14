@@ -30,7 +30,7 @@ async def commandlist(ctx):
 async def user(ctx, reqrobid):
     RequestedUserId = reqrobid
 
-    print('Processing request of: author:' + str(ctx.author.id) + 'SearchedRobloxID:' + str(reqrobid))
+    print('Processing request of: author: ' + str(ctx.author.id) + '; SearchedRobloxID: ' + str(reqrobid))
 
     embedProc = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
                           description="Запрос пользователя <@" + str(ctx.author.id) + "> обрабатывается...")

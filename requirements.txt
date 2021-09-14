@@ -1,4 +1,3 @@
 requests
 tabulate
 discord
-io

@@ -32,7 +32,7 @@ async def user(ctx, reqrobid):
 
     print('Processing request of: author: ' + str(ctx.author.id) + '; SearchedRobloxID: ' + str(reqrobid))
 
-    embedProc = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    embedProc = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                           description="Запрос пользователя <@" + str(ctx.author.id) + "> обрабатывается...")
     await ctx.send(embed=embedProc)
 
@@ -126,7 +126,7 @@ async def user(ctx, reqrobid):
                                                    glob_info['name'] + "'s in group role name",
                                                    glob_info['name'] + "'s rank in group"])
         groupsForPost = '`Текст слишком большой. Используйте прикрепленный файл для просмотра.`'
-    UserInfoPostEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj", description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+    UserInfoPostEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn", description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
     UserInfoPostEmbed.add_field(name="Имя", value=nameForPost, inline=False)
     UserInfoPostEmbed.add_field(name="Отображаемое имя", value=displayNameForPost, inline=False)
     UserInfoPostEmbed.add_field(name="ID", value=idForPost, inline=False)
@@ -157,7 +157,7 @@ async def user(ctx, reqrobid):
 async def getid(ctx, username):
     name_please = requests.get('https://api.roblox.com/users/get-by-username',
                                   params={'username': username}).json()
-    embedForGetIdByUsername = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    embedForGetIdByUsername = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                           description="Запрос пользователя <@" + str(ctx.author.id) + '>', color=0x00fbff)
     embedForGetIdByUsername.add_field(name="`Имя:" + str(name_please['Username']) + "`", value="`ID:" + str(name_please['Id']) + "`", inline=True)
     embedForGetIdByUsername.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")

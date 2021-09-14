@@ -1,0 +1,5 @@
+requests
+tabulate
+discord
+os
+io

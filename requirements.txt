@@ -1,5 +1,4 @@
 requests
 tabulate
 discord
-os
-io
+discord-py-slash-command

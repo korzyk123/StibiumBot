@@ -12,16 +12,21 @@ slash = SlashCommand(bot, sync_commands=True)
 
 ver_info = """
 ```
-[v0.4.3a]
+[v0.7.1a]
 
-[!] Обновлено
-[*] Добавлена команда /question для справки
-[*] Добавлена команда /changelog, которая показывает нововведения и версию
-[*] Добаалены команды для модерирования пользователей (скоро появятся модераторы)
-[*] Добавлена полная интеграция /слэш/ команд в Discord
-[!] Пожалуйста, сообщайте о всех ошибках и недочётах, которые вы найдёте
+[*] Добавлено получение информации про группы
+[/] Оптимизация приложений 
+[/] Оптимизация реквестов
+[/] Оптимизация прав
+[!] В будущем будет добвалена ммодерация
+[!] В будущем будет добвалена функия слоучайной игры
 ```
 """
+
+
+# TODO: Add moderation system for /blacklist commands
+# TODO: Add /uptime command
+# TODO: Add random.org (not python:random)
 
 blacklisted_ids = []
 
@@ -39,17 +44,18 @@ async def commandlist(ctx):
     helpEmbed.add_field(name="`/user [ID]`", value="Показывает информацию про пользователя", inline=False)
     helpEmbed.add_field(name="`/getid [username]`", value="Показывает ID пользователя по его имени", inline=False)
     helpEmbed.add_field(name="`/changelog`", value="Показывает информацию о версии и список изменений", inline=False)
-    helpEmbed.add_field(name="`/question`", value="Встроенный справочник, показывает ответы на некоторые вопросы",
-                        inline=False)
+    helpEmbed.add_field(name="`/question`", value="Встроенный справочник, показывает ответы на некоторые вопросы", inline=False)
     helpEmbed.add_field(name="`/blacklist`", value="Показывает все ID в черном списке", inline=False)
-    helpEmbed.add_field(name="`/add_blacklist`", value="Добавляет новый ID в черный список", inline=False)
-    helpEmbed.add_field(name="`/remove_blacklist`", value="Уберает ID из черного списка", inline=False)
+    helpEmbed.add_field(name="`/add_blacklist [ID]`", value="Добавляет новый ID в черный список", inline=False)
+    helpEmbed.add_field(name="`/remove_blacklist [ID]`", value="Уберает ID из черного списка", inline=False)
+    helpEmbed.add_field(name="`/group [ID]`", value="Показывает информацию про группу", inline=False)
     helpEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
     await ctx.send(embed=helpEmbed)
 
 
 @slash.slash(description="Выводит всю полученную информацию о зарегистрированном пользователе в Roblox")
 async def user(ctx, id):
+
     # TODO: Add send exception messages while bad request.
 
     RequestedUserId = id
@@ -223,30 +229,24 @@ async def question(ctx, question):
             https://roblox.com/users/1/profile/
                                      ^
                                      ID
-
+            
             ID пользователя из примера: 1 (это профиль Roblox)```
         **Способ II**
             Шаг 1. Напишите в этот канал /getid [Имя профиля]
             Шаг 2. Скопируйте ID, который отослал StibiumBot
         ''')
     elif str(question) == '2':
-        await ctx.send(
-            'Discord не позволяет отсылать слишком много текста в одном сообщении, чтобы оставаться быстрым, удобным и бесплатным. Пришлось разделить ответ на несколько сообщений и файлов')
+        await ctx.send('Discord не позволяет отсылать слишком много текста в одном сообщении, чтобы оставаться быстрым, удобным и бесплатным. Пришлось разделить ответ на несколько сообщений и файлов')
     elif str(question) == '3':
-        await ctx.send(
-            'Скорее всего, это связано с тем, что ваш запрос неправильный. Убедитесь, что вы ввели правильную команду, ID или имя')
+        await ctx.send('Скорее всего, это связано с тем, что ваш запрос неправильный. Убедитесь, что вы ввели правильную команду, ID или имя')
     elif str(question) == '4':
-        await ctx.send(
-            'Да. StibiumBot использует информацию в открытом доступе и собирает в одном месте специально для вас.')
+        await ctx.send('Да. StibiumBot использует информацию в открытом доступе и собирает в одном месте специально для вас.')
     elif str(question) == '5':
-        await ctx.send(
-            'Игрок нарушал правила, вел себя непристойно, мешал работе StibiumBot, из за чего был добавлен в черный список. В черный список добавляются игроки, которые мешают работе бота, а не нарушили правила Roblox.')
+        await ctx.send('Игрок нарушал правила, вел себя непристойно, мешал работе StibiumBot, из за чего был добавлен в черный список. В черный список добавляются игроки, которые мешают работе бота, а не нарушили правила Roblox.')
     else:
-        await ctx.send(
-            'Такого вопроса не существует :(\n**Варианты вопросов:**\n```[1] Как получить ID игрока?\n[2] Почему информация отсылается в файле?\n[3] Почему бот не отвечает?\n[4] Легальный ли бот?\n[5] Почему я не могу искать игрока?\n\nПишите не вопрос, а его номер: /question 1```')
+        await ctx.send('Такого вопроса не существует :(\n**Варианты вопросов:**\n```[1] Как получить ID игрока?\n[2] Почему информация отсылается в файле?\n[3] Почему бот не отвечает?\n[4] Легальный ли бот?\n[5] Почему я не могу искать игрока?\n\nПишите не вопрос, а его номер: /question 1```')
 
 
-# TODO: Add group info
 # TODO: Add place info
 
 @slash.slash(description="Выводит информацию о версии и список изменений")
@@ -330,5 +330,36 @@ async def remove_blacklist(ctx, id):
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
         await ctx.send(embed=errEmbed)
 
+@slash.slash(description="Выводит информацию о группе")
+async def group(ctx, id):
+    requestGroupId = id
+
+    mainGroupInfo = requests.get("https://groups.roblox.com/v2/groups", params={"groupIds": requestGroupId}).json()
+
+    groupName = mainGroupInfo["data"][0]["name"]
+    groupDesc = mainGroupInfo["data"][0]["description"]
+    groupId = mainGroupInfo["data"][0]["id"]
+    groupOwner = mainGroupInfo["data"][0]["owner"]["id"]
+    groupOwnerType = mainGroupInfo["data"][0]["owner"]["type"]
+    groupCreationDate = mainGroupInfo["data"][0]["created"]
+
+    embedGroup = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+                                            description="Запрос пользователя <@" + str(ctx.author.id) + '>',
+                                            color=0x00e1ff)
+    embedGroup.add_field(name="`Название:`",
+                                      value="`" + str(groupName) + "`", inline=True)
+    embedGroup.add_field(name="`Описание:`",
+                         value="`" + str(groupDesc) + "`", inline=True)
+    embedGroup.add_field(name="`ID:`",
+                         value="`" + str(groupId) + "`", inline=True)
+    embedGroup.add_field(name="`Владелец:`",
+                         value="`" + str(groupOwner) + "`", inline=True)
+    embedGroup.add_field(name="`Тип владельца:`",
+                         value="`" + str(groupOwnerType) + "`", inline=True)
+    embedGroup.add_field(name="`Дата создания:`",
+                         value="`" + str(groupCreationDate) + "`", inline=True)
+    embedGroup.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+
+    await ctx.send(embed=embedGroup)
 
 bot.run(TOKEN)

@@ -1,35 +1,40 @@
+import io
+import os
+import discord
 import requests
 import tabulate
-import discord
-import os
-import io
+import discord.embeds
 from discord.ext import commands
 from discord_slash import SlashCommand
+from http.client import HTTPSConnection
+from json import dumps, loads
 
 TOKEN = 'ODg2NjAxNzYwNDIzMTc4MjUy.YT3-Ow.hryNyl2xGGsJ8zJHyB4UTj9UN1s'
+randomOrgToken = 'd1016618-e88d-4d89-8f25-d0679cd8d336'
 bot = commands.Bot(command_prefix='/')
+bot.remove_command('help')
 slash = SlashCommand(bot, sync_commands=True)
+
 
 ver_info = """
 ```
-[v0.7.1a]
+[v0.8.3b]
 
-[*] Добавлено получение информации про группы
-[/] Оптимизация приложений 
-[/] Оптимизация реквестов
-[/] Оптимизация прав
-[!] В будущем будет добвалена ммодерация
-[!] В будущем будет добвалена функия слоучайной игры
+[*] Команда /commandlist заменена на классическую /help
+[*] Добавление случайных игр
+[*] Новая /help
+[*] Добавлены модераторы
+[!] Открыт бета-тест. Пожалуйста, сообщайте об ошибках 
 ```
 """
 
 
 # TODO: Add moderation system for /blacklist commands
 # TODO: Add /uptime command
-# TODO: Add random.org (not python:random)
+
 
 blacklisted_ids = []
-
+discord_moderators = [735801783120560159]
 
 # @bot.command(pass_context=True)  # разрешаем передавать агрументы
 # async def test(ctx, arg):  # создаем асинхронную фунцию бота
@@ -37,18 +42,18 @@ blacklisted_ids = []
 
 
 @slash.slash(description="Выводит список доступных команд")
-async def commandlist(ctx):
-    helpEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
-                              description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
-    helpEmbed.add_field(name="`/commandlist`", value="Показывает этот список", inline=False)
-    helpEmbed.add_field(name="`/user [ID]`", value="Показывает информацию про пользователя", inline=False)
-    helpEmbed.add_field(name="`/getid [username]`", value="Показывает ID пользователя по его имени", inline=False)
-    helpEmbed.add_field(name="`/changelog`", value="Показывает информацию о версии и список изменений", inline=False)
-    helpEmbed.add_field(name="`/question`", value="Встроенный справочник, показывает ответы на некоторые вопросы", inline=False)
-    helpEmbed.add_field(name="`/blacklist`", value="Показывает все ID в черном списке", inline=False)
-    helpEmbed.add_field(name="`/add_blacklist [ID]`", value="Добавляет новый ID в черный список", inline=False)
-    helpEmbed.add_field(name="`/remove_blacklist [ID]`", value="Уберает ID из черного списка", inline=False)
-    helpEmbed.add_field(name="`/group [ID]`", value="Показывает информацию про группу", inline=False)
+async def help(ctx):
+    helpEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn", description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+    helpEmbed.add_field(name="`/help - показывает этот список`", value="**`/user - показывает информацию про пользователя`**", inline=False)
+    helpEmbed.add_field(name="`/user [ID] - показывает информацию про пользователя`", value="**`/getid [имя] - показывает ID пользователя по его имени`**", inline=False)
+    helpEmbed.add_field(name="`/changelog - показывает информацию о версии и список изменений`", value="**`/question [ID вопроса] - показывает ответы на некоторые вопросы`**", inline=False)
+    helpEmbed.add_field(name="`/blacklist - показывает все ID в черном списке`", value="**`/add_blacklist [ID] - добавляет новый ID в черный список`**", inline=False)
+    helpEmbed.add_field(name="`/remove_blacklist [ID] - удаляет ID из черного списка`", value="**`/group [ID] - показывает информацию о группе`**", inline=False)
+    helpEmbed.add_field(name="`/randomgame - показывает случайную игру из рекомендаций`", value="**`(╯°□°）╯︵ ┻━┻`**", inline=False)
+    # helpEmbed.add_field(name="`/add_blacklist [ID]`", value="Добавляет новый ID в черный список", inline=False)
+    # helpEmbed.add_field(name="`/remove_blacklist [ID]`", value="Уберает ID из черного списка", inline=False)
+    # helpEmbed.add_field(name="`/group [ID]`", value="Показывает информацию про группу", inline=False)
+    # helpEmbed.add_field(name="`/randomgame`", value="Выводит случайную игру из рекомендаций")
     helpEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
     await ctx.send(embed=helpEmbed)
 
@@ -56,13 +61,15 @@ async def commandlist(ctx):
 @slash.slash(description="Выводит всю полученную информацию о зарегистрированном пользователе в Roblox")
 async def user(ctx, id):
 
-    # TODO: Add send exception messages while bad request.
+
+
+    # TODO: Make discord.button's and discord.dropdown's for information control and choosing
 
     RequestedUserId = id
 
     print('Processing request of author: ' + str(ctx.author.id) + '; SearchedRobloxID: ' + str(id))
 
-    embedProc = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    embedProc = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                               description="Запрос пользователя <@" + str(ctx.author.id) + "> обрабатывается...")
     await ctx.send(embed=embedProc)
 
@@ -156,7 +163,7 @@ async def user(ctx, id):
                                                           "Роль " + glob_info['name'],
                                                           "Значимость " + glob_info['name']])
         groupsForPost = '`Текст слишком большой. Используйте прикрепленный файл для просмотра.`'
-    UserInfoPostEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    UserInfoPostEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                       description="По запросу пользователя <@" + str(ctx.author.id) + '>',
                                       color=0x00e1ff)
     UserInfoPostEmbed.add_field(name="Имя", value=nameForPost, inline=False)
@@ -181,7 +188,7 @@ async def user(ctx, id):
                 'name'] + '\n' + followersTableForPost_PTABLE + '\n \nГруппы, в которых участвует пользователь:\n' + groupsForPost_PTABLE)
 
     if int(id) in blacklisted_ids:
-        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         errEmbed.add_field(name="Ошибка", value="Вы не можете искать информацию об этом пользователе", inline=False)
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -200,7 +207,7 @@ async def user(ctx, id):
 async def getid(ctx, username):
     name_please = requests.get('https://api.roblox.com/users/get-by-username',
                                params={'username': username}).json()
-    embedForGetIdByUsername = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    embedForGetIdByUsername = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                             description="Запрос пользователя <@" + str(ctx.author.id) + '>',
                                             color=0x00e1ff)
     embedForGetIdByUsername.add_field(name="`Имя:" + str(name_please['Username']) + "`",
@@ -208,7 +215,7 @@ async def getid(ctx, username):
     embedForGetIdByUsername.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
 
     if int(name_please['Id']) in blacklisted_ids:
-        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         errEmbed.add_field(name="Ошибка", value="Вы не можете искать информацию об этом пользователе", inline=False)
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -251,7 +258,7 @@ async def question(ctx, question):
 
 @slash.slash(description="Выводит информацию о версии и список изменений")
 async def changelog(ctx):
-    clEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    clEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                             description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
     clEmbed.add_field(name="Нововведения", value=ver_info, inline=False)
     clEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -260,9 +267,9 @@ async def changelog(ctx):
 
 @slash.slash(description="Команда для операторов. Добавить пользователя в черный список")
 async def add_blacklist(ctx, id):
-    if str(ctx.author.id) == "735801783120560159":
+    if int(ctx.author.id) in discord_moderators:
         if int(id) in blacklisted_ids:
-            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                      description="По запросу пользователя <@" + str(ctx.author.id) + '>',
                                      color=0x00e1ff)
             errEmbed.add_field(name="Ошибка", value="Этот ID уже находится в черном списке, ничего не было изменено",
@@ -271,7 +278,7 @@ async def add_blacklist(ctx, id):
             await ctx.send(embed=errEmbed)
         else:
             blacklisted_ids.append(int(id))
-            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                      description="По запросу пользователя <@" + str(ctx.author.id) + '>',
                                      color=0x00e1ff)
             scsEmbed.add_field(name="Успех", value="Этот игрок Roblox успешно был добавлен в черный список",
@@ -279,7 +286,7 @@ async def add_blacklist(ctx, id):
             scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
             await ctx.send(embed=scsEmbed)
     else:
-        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -288,14 +295,14 @@ async def add_blacklist(ctx, id):
 
 @slash.slash(description="Команда для операторов. Посмотреть пользователей в черном списке")
 async def blacklist(ctx):
-    if str(ctx.author.id) == "735801783120560159":
-        scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    if int(ctx.author.id) in discord_moderators:
+        scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         scsEmbed.add_field(name="Успех", value="```" + str(blacklisted_ids) + "```", inline=False)
         scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
         await ctx.send(embed=scsEmbed)
     else:
-        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -304,9 +311,9 @@ async def blacklist(ctx):
 
 @slash.slash(description="Команда для операторов. Удалить пользователя из черного списка")
 async def remove_blacklist(ctx, id):
-    if str(ctx.author.id) == "735801783120560159":
+    if int(ctx.author.id) in discord_moderators:
         if not int(id) in blacklisted_ids:
-            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                      description="По запросу пользователя <@" + str(ctx.author.id) + '>',
                                      color=0x00e1ff)
             errEmbed.add_field(name="Ошибка",
@@ -316,7 +323,7 @@ async def remove_blacklist(ctx, id):
             await ctx.send(embed=errEmbed)
         else:
             blacklisted_ids.remove(int(id))
-            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                      description="По запросу пользователя <@" + str(ctx.author.id) + '>',
                                      color=0x00e1ff)
             scsEmbed.add_field(name="Успех", value="Этот игрок Roblox успешно был удален из черного списка",
@@ -324,7 +331,7 @@ async def remove_blacklist(ctx, id):
             scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
             await ctx.send(embed=scsEmbed)
     else:
-        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                  description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
         errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
         errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
@@ -332,6 +339,7 @@ async def remove_blacklist(ctx, id):
 
 @slash.slash(description="Выводит информацию о группе")
 async def group(ctx, id):
+    print('Processing request of author: ' + str(ctx.author.id) + '; SearchedGroupID: ' + str(id))
     requestGroupId = id
 
     mainGroupInfo = requests.get("https://groups.roblox.com/v2/groups", params={"groupIds": requestGroupId}).json()
@@ -343,7 +351,7 @@ async def group(ctx, id):
     groupOwnerType = mainGroupInfo["data"][0]["owner"]["type"]
     groupCreationDate = mainGroupInfo["data"][0]["created"]
 
-    embedGroup = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/nqkAeaWGcj",
+    embedGroup = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
                                             description="Запрос пользователя <@" + str(ctx.author.id) + '>',
                                             color=0x00e1ff)
     embedGroup.add_field(name="`Название:`",
@@ -361,5 +369,135 @@ async def group(ctx, id):
     embedGroup.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
 
     await ctx.send(embed=embedGroup)
+
+@slash.slash(description="Выводит случайную игру из рекоменцаций")
+async def randomgame(ctx):
+    getPlacesForRandom = requests.get("https://games.roblox.com/v1/games/list?model.pageContext.pageId").json()
+    request_data = {  # Тело запроса
+        'jsonrpc': '2.0',
+        'method': 'generateIntegers',
+        'params': {
+            'apiKey': randomOrgToken,
+            'min': 1,
+            'max': len(getPlacesForRandom["games"]),
+            'n': 1,
+        },
+        'id': 1,
+    }
+    encoded_data = dumps(request_data)
+
+    headers = {
+        'Content-Type': 'application/json-rpc',  # Тип запроса
+    }
+    encoded_headers = dumps(headers)
+
+    connection = HTTPSConnection('api.random.org')
+    connection.request('GET', '/json-rpc/1/invoke', encoded_data, headers)
+    response = connection.getresponse()
+    randomNumberRandomOrg = loads(response.read().decode())
+
+    gotRobloxGame = getPlacesForRandom["games"][randomNumberRandomOrg['result']['random']['data'][0]]["name"]
+    gotRobloxGameId = getPlacesForRandom["games"][randomNumberRandomOrg['result']['random']['data'][0]]["placeId"]
+
+    getPlaceIconForRandom = requests.get("https://thumbnails.roblox.com/v1/places/gameicons",
+                                         params={"placeIds": gotRobloxGameId, "size": "512x512", "format": "Png",
+                                                 "isCircular": "false"}).json()
+
+
+
+    randomPlaceEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                            description="Запрос пользователя <@" + str(ctx.author.id) + '>',
+                                            color=0x00e1ff)
+    randomPlaceEmbed.set_thumbnail(url=getPlaceIconForRandom["data"][0]["imageUrl"])
+    randomPlaceEmbed.add_field(name="Игра:",
+                               value="`" + gotRobloxGame + "`", inline=False)
+    randomPlaceEmbed.add_field(name="Ссылка:",
+                         value="https://www.roblox.com/games/" + str(gotRobloxGameId), inline=False)
+    randomPlaceEmbed.add_field(name="ID:",
+                         value="`" + str(gotRobloxGameId) + "`", inline=False)
+    randomPlaceEmbed.add_field(name="Сгенерированое число:", value=f"`{str(randomNumberRandomOrg['result']['random']['data'][0])}`")
+    await ctx.send(embed=randomPlaceEmbed)
+
+@slash.slash(description="Добавить модератора")
+async def add_mod(ctx, discordid):
+    if int(ctx.author.id) in discord_moderators:
+        if int(discordid) in discord_moderators:
+            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                     description="По запросу пользователя <@" + str(ctx.author.id) + '>',
+                                     color=0x00e1ff)
+            errEmbed.add_field(name="Ошибка", value="Этот пользователь - модератор. Ничего не было изменено.",
+                               inline=False)
+            errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+            await ctx.send(embed=errEmbed)
+        else:
+            discord_moderators.append(int(discordid))
+            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                     description="По запросу пользователя <@" + str(ctx.author.id) + '>',
+                                     color=0x00e1ff)
+            scsEmbed.add_field(name="Успех", value="Этот пользователь был успешно назначен модератором",
+                               inline=False)
+            scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+            await ctx.send(embed=scsEmbed)
+    else:
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                 description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+        errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
+        errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+        await ctx.send(embed=errEmbed)
+
+@slash.slash(description="Удалить модератора")
+async def remove_mod(ctx, discordid):
+    if int(ctx.author.id) in discord_moderators:
+        if int(discordid) not in discord_moderators:
+            errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                     description="По запросу пользователя <@" + str(ctx.author.id) + '>',
+                                     color=0x00e1ff)
+            errEmbed.add_field(name="Ошибка", value="Этот пользователь не был модератором. Ничего не было изменено.",
+                               inline=False)
+            errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+            await ctx.send(embed=errEmbed)
+        else:
+            discord_moderators.remove(int(discordid))
+            scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                     description="По запросу пользователя <@" + str(ctx.author.id) + '>',
+                                     color=0x00e1ff)
+            scsEmbed.add_field(name="Успех", value="Этот пользователь был успешно снят с должности модератора",
+                               inline=False)
+            scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+            await ctx.send(embed=scsEmbed)
+    else:
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                 description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+        errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
+        errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+        await ctx.send(embed=errEmbed)
+
+@slash.slash(description="Посмотреть модераторов")
+async def mods(ctx):
+    if int(ctx.author.id) in discord_moderators:
+        scsEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                 description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+        scsEmbed.add_field(name="Успех", value="```" + str(discord_moderators) + "```", inline=False)
+        scsEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+        await ctx.send(embed=scsEmbed)
+    else:
+        errEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn",
+                                 description="По запросу пользователя <@" + str(ctx.author.id) + '>', color=0x00e1ff)
+        errEmbed.add_field(name="Ошибка", value="У вас недотаточно прав для использования этой команды!", inline=False)
+        errEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+        await ctx.send(embed=errEmbed)
+
+
+
+@bot.event
+async def on_ready():
+    print('Bot initialized')
+
+@bot.event
+async def on_command_error(ctx, error):
+    nscEmbed = discord.Embed(title="StibiumBot [A]", url="https://discord.gg/UwR6uWSYRn", description="Запрос пользователя <@" + str(ctx.author.id) + '>', color=0xff0000)
+    nscEmbed.add_field(name="Ошибка", value=f"Discord возвратил ошибку:\n```{error}```", inline=False)
+    nscEmbed.set_footer(text="StibiumBot 2021, alpha test, made by KorzForcanyt")
+    await ctx.send(embed=nscEmbed)
 
 bot.run(TOKEN)

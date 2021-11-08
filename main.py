@@ -9,7 +9,7 @@ from discord_slash import SlashCommand
 from http.client import HTTPSConnection
 from json import dumps, loads
 
-TOKEN = 'ODg2NjAxNzYwNDIzMTc4MjUy.YT3-Ow.hryNyl2xGGsJ8zJHyB4UTj9UN1s'
+TOKEN = 'TOKEN HERE'
 randomOrgToken = 'd1016618-e88d-4d89-8f25-d0679cd8d336'
 bot = commands.Bot(command_prefix='/')
 bot.remove_command('help')

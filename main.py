@@ -10,7 +10,7 @@ from http.client import HTTPSConnection
 from json import dumps, loads
 
 TOKEN = 'TOKEN HERE'
-randomOrgToken = 'd1016618-e88d-4d89-8f25-d0679cd8d336'
+randomOrgToken = 'TOKEN HERE'
 bot = commands.Bot(command_prefix='/')
 bot.remove_command('help')
 slash = SlashCommand(bot, sync_commands=True)
